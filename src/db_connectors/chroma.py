@@ -1,7 +1,5 @@
 import chromadb
 from src.utils.db_model import DBModel
-from chromadb import EmbeddingFunction, Documents, Embeddings
-from chromadb.utils import embedding_functions
 import ollama
 
 

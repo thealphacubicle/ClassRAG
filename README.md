@@ -49,8 +49,13 @@ In this repository:
 ## Project Setup
 ## Project System Setup
 
-### 1. Create a Conda Environment
-
+### 1. Clone the Repository
+1. **Clone the repository:**  
+   ```bash
+   git clone <repo-url>
+    ```
+   
+### 2. Create a Conda Environment
 1. **Install Conda (if not already installed):**  
    Download and install [Miniconda](https://docs.conda.io/en/latest/miniconda.html) or [Anaconda](https://www.anaconda.com/).
 
@@ -60,12 +65,6 @@ In this repository:
    ```bash
    conda create -n ds4300-rag python=3.12.9
    conda activate ds4300-rag
-    ```
-   
-### 2. Clone the Repository
-1. **Clone the repository:**  
-   ```bash
-   git clone <repo-url>
     ```
 
 ### 3. Install Dependencies
@@ -84,18 +83,25 @@ In this repository:
    ```bash
    docker-compose up -d
    ```
-5. **Ensure the containers are running:**
+2**Ensure the containers are running:**
    ```bash
    docker ps
    ```
+
+### 5. Install Ollama and pull the models
+1. Install Ollama locally by following the instructions [here](https://ollama.com/download).
+2. Pull the models you wish to run by running the following command:
+   ```bash
+   ollama pull <model-name:tag>
+   ```
    
-### 5. TO CHANGE: Run the pipeline
+### 6. TO CHANGE: Run the pipeline
 1. **Run the sample pipeline:**
    ```bash
    python src/db_connectors/chroma.py
    ```
 
-### 6. Remove Docker Containers
+### 7. Remove Docker Containers
 1. **Stop and remove the Docker containers (NO PERSISTENCE):**
    ```bash
    docker-compose down -v
