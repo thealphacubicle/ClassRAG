@@ -3,7 +3,7 @@ from src.utils.db_model import DBModel
 from src.utils.llm_model import LLMModel
 
 
-class RAGPipeline:
+class RAG:
     def __init__(self, embedding_model: EmbeddingModel, vector_db: DBModel, llm: LLMModel):
         """
         Initialize a RAG pipeline with the given models.

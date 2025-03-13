@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-
+from typing import Optional
 
 class DBModel(ABC):
     """
@@ -17,7 +17,7 @@ class DBModel(ABC):
     Author: Srihari Raman
     """
     @abstractmethod
-    def index_embeddings(self, embeddings: list, metadata: list):
+    def index_embeddings(self, documents: list, embeddings: list):
         """Index the embeddings with associated metadata."""
         pass
 
