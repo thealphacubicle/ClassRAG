@@ -15,5 +15,9 @@ class LLMModel(ABC):
     """
     @abstractmethod
     def generate_response(self, prompt: str) -> str:
-        """Generate a response based on the provided prompt."""
+        """Generate a response based on the provided prompt.
+
+        :param prompt: The prompt to generate a response for.
+        :return: The generated response.
+        """
         pass
