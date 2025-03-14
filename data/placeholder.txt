@@ -1,7 +1,0 @@
-This is where we will put all of our class notes.
-
-Requirements:
-- Please include "_FirstName_LastName_" in the file name so we can differentiate each other's notes.
-- Please keep them to typed notes, not handwritten.
-- PDF files would be preferred, but not necessary.
-- We can collect personal notes, PDFs, slides, and documentation in this folder.
