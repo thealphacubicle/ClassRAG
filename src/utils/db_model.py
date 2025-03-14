@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Optional
+from typing import Optional, List, Dict
 
 class DBModel(ABC):
     """
@@ -18,10 +18,27 @@ class DBModel(ABC):
     """
     @abstractmethod
     def index_embeddings(self, documents: list, embeddings: list, metadata: Optional[list] = None, ids: Optional[list] = None):
-        """Index the embeddings with associated metadata."""
+        """Index multiple embeddings and documents with associated metadata into the database
+
+        Args:
+            documents (list): List of documents to index.
+            embeddings (list): List of embeddings to index.
+            metadata (Optional[list]): List of metadata dicts associated with the documents (optional)
+            ids (Optional[list]): List of custom IDs for the documents (optional)
+        """
         pass
 
     @abstractmethod
-    def query_db(self, query_embedding: list, top_k: int) -> list:
-        """Query the database with an embedding and return the top_k results."""
+    def query_db(self, query_embedding: list, top_k: int) -> tuple[List, Dict]:
+        """Query the database with an embedding and return the top_k results.
+
+        Args:
+            query_embedding (list): Embedding form of the query.
+            top_k (int): Number of results to return.
+
+
+        Returns:
+            context (List): List of documents retrieved from the database.
+            metadata (Dict): List of all metadata retrieved from the database.
+        """
         pass

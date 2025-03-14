@@ -12,7 +12,9 @@ from src.llm_connectors.ollama_llm import OllamaLLM
 
 if __name__ == "__main__":
     # Initialize the embedding model
-    embedding_model = OllamaEmbed(model_name="nomic-embed-text")
+    embedding_models = [OllamaEmbed(model_name=model_name) for model_name in
+                        ['nomic-embed-text']]
+    # embedding_model = OllamaEmbed(model_name="nomic-embed-text")
 
     # Initialize the LLM model
     llm = OllamaLLM(model_name="tinyllama:latest")
@@ -20,31 +22,33 @@ if __name__ == "__main__":
     # Initialize the vector databases
     chroma_db = ChromaConnector()
     redis_db = RedisConnector()
-    dbs = [redis_db, chroma_db]
+    dbs = [chroma_db, redis_db]
 
     # Index sample data into both vector databases
     for db in dbs:
-        print("Indexing sample data into database:", db.__class__.__name__)
+        for embedding_model in embedding_models:
+            print("Indexing sample data into database:", db.__class__.__name__)
 
-        documents = ["Cookies are yummy", "Trucks are fast", "Yummy is defined as a taste that is delicious.",
-                     "Fast is defined as moving quickly."]
-        embeddings = [embedding_model.generate_embeddings(doc) for doc in documents]
-        metadata = [{"file": "file1", "page": 1, "chunk": 1}, {"file": "file2", "page": 2, "chunk": 2},
-                    {"file": "file3", "page": 3, "chunk": 3}, {"file": "file4", "page": 4, "chunk": 4}]
+            documents = ["Cookies are yummy", "Trucks are fast", "Yummy is defined as a taste that is delicious.",
+                         "Fast is defined as moving quickly."]
+            embeddings = [embedding_model.generate_embeddings(doc) for doc in documents]
+            metadata = [{"file": "file1", "page": 1, "chunk": 1, "model_type": embedding_model.__class__.__name__},
+                        {"file": "file2", "page": 2, "chunk": 2, "model_type": embedding_model.__class__.__name__},
+                        {"file": "file3", "page": 3, "chunk": 3, "model_type": embedding_model.__class__.__name__},
+                        {"file": "file4", "page": 4, "chunk": 4, "model_type": embedding_model.__class__.__name__}]
 
-        db.index_embeddings(documents, embeddings, metadata)
+            db.index_embeddings(documents, embeddings, metadata)
 
-        print("Embeddings indexed successfully.")
+            print("Embeddings indexed successfully.")
 
-        # Create the RAG pipeline
-        rag_pipeline = RAG(embedding_model, db, llm)
+            # Create the RAG pipeline
+            rag_pipeline = RAG(embedding_model, db, llm)
 
-        # Example query
-        query = "What is yummy?"
-        response = rag_pipeline.run(query, top_k=1)
-        print("Response:", response)
-
-        print("\n\n")
+            # Example query
+            query = "What is yummy?"
+            response, metadata = rag_pipeline.run(query, top_k=1)
+            print("Response:", response)
+            print("\n\n")
 
     print("Experiment completed successfully.")
 

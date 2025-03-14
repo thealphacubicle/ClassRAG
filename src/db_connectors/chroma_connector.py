@@ -1,6 +1,7 @@
 import chromadb
 from src.utils.db_model import DBModel
 import ollama
+from typing import List, Dict
 
 
 class ChromaConnector(DBModel):
@@ -45,21 +46,27 @@ class ChromaConnector(DBModel):
 
 
 
-    def query_db(self, query_embedding: list, top_k: int = 1):
+    def query_db(self, query_embedding: list, top_k: int = 1) -> tuple[List[str], Dict]:
         """
         Query the database with an embedding and return the top_k results.
         :param query_embedding: Embedding form of the query.
         :param top_k: Number of results to return.
-        :return: List of top_k results.
+        :return:
+            context: List of documents retrieved from the database.
+            results: List of all metadata retrieved from the database.
         """
         try:
             # Perform the search
-            results = self.collection.query(query_embedding, n_results=top_k)
-            return results
+            results = self.collection.query(query_embedding, n_results=top_k,
+                                            include=["documents", "embeddings", "metadatas"])
+
+            context = results['documents'][0]
+
+            return context, results
 
         except Exception as e:
             print(f"Error querying database: {e}")
-            return []
+            return [], {}
 
 
 if __name__ == "__main__":

@@ -3,6 +3,7 @@ from src.utils.db_model import DBModel
 from redis.commands.search.query import Query
 import ollama
 import numpy as np
+from typing import List, Dict
 
 
 class RedisConnector(DBModel):
@@ -36,60 +37,69 @@ class RedisConnector(DBModel):
         Index the embeddings with associated metadata.
         :param documents: List of documents to index.
         :param embeddings: List of embeddings to index.
-        :param metadata: List of metadata associated with the documents (optional)
+        :param metadata: List of metadata dicts associated with the documents (optional)
         :param ids: List of custom IDs for the documents (optional)
         :return: None
         """
-        # For each document, create a unique key and store the embedding and metadata in Redis
         for i, embedding in enumerate(embeddings):
-            # Extract metadata
-            file = metadata[i]["file"]
-            page = metadata[i]["page"]
-            chunk = metadata[i]["chunk"]
+            # Use metadata for this document or an empty dict if not provided
+            meta = metadata[i] if metadata is not None else {}
 
-            key = f"{self.doc_prefix}:{file}_page_{page}_chunk_{chunk}"
-            self.redis_client.hset(
-                key,
-                mapping={
-                    "file": file,
-                    "page": page,
-                    "chunk": chunk,
-                    "text": documents[i],
-                    "embedding": np.array(
-                        embedding, dtype=np.float32
-                    ).tobytes(),  # Store as byte array
-                },
-            )
+            # If custom IDs are provided, use the document prefix to create unique key
+            if ids is not None:
+                key = f"{self.doc_prefix}:{ids[i]}"
 
-    def query_db(self, query_embedding: list, top_k: int = 1):
+            else:
+                # Dynamically build key from metadata: sort keys for consistency.
+                if meta:
+                    key_parts = [f"{k}_{meta[k]}" for k in sorted(meta.keys())]
+                    key_suffix = "_".join(key_parts)
+                    key = f"{self.doc_prefix}:{key_suffix}"
+                else:
+                    key = f"{self.doc_prefix}:{i}"
+
+            # Create the mapping: start with metadata and update with text and embedding.
+            redis_mapping = meta.copy()
+            redis_mapping.update({
+                "text": documents[i],
+                "embedding": np.array(embedding, dtype=np.float32).tobytes(),  # Store as a byte array
+            })
+
+            self.redis_client.hset(key, mapping=redis_mapping)
+
+    def query_db(self, query_embedding: list, top_k: int = 1) -> tuple[List[str], Dict]:
         """
         Query the database with an embedding and return the top_k results.
         :param query_embedding: Embedding form of the query.
         :param top_k: Number of results to return.
-        :return: List of top_k results.
+        :return:
+            context: List of documents retrieved from the database.
+            metadata: List of all metadata retrieved from the database.
         """
         # Convert embedding to bytes for Redis search
         query_vector = np.array(query_embedding, dtype=np.float32).tobytes()
 
         try:
-            # Construct the vector similarity search query
+            # Build the vector similarity search query to return all fields
             q = (
                 Query(f"*=>[KNN {top_k} @embedding $vec AS vector_distance]")
                 .sort_by("vector_distance")
-                .return_fields("file", "page", "chunk", "text", "vector_distance")
                 .dialect(2)
             )
 
-            # Perform the search
+            # Run search query.
             results = self.redis_client.ft(self.index_name).search(
                 q, query_params={"vec": query_vector}
             )
 
-            return [r.text for r in results.docs]
+            context, metadata = [doc.text for doc in results.docs], results.docs[0].__dict__
+
+            # Return text and metadata of the top_k results
+            return context, metadata
 
         except Exception as e:
             print(f"Error querying database: {e}")
-            return []
+            return [], {}
 
     def _create_hnsw_index(self):
         try:
