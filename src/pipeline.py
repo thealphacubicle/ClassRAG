@@ -15,7 +15,7 @@ class RAG:
         self.vector_db = vector_db
         self.llm = llm
 
-    def run(self, query: str, top_k: int = 5) -> str:
+    def run(self, query: str, top_k: int = 1) -> str:
         """
         Run the RAG pipeline with the given query and return the response.
         :param query: Query from the user.

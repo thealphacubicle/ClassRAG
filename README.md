@@ -98,7 +98,7 @@ In this repository:
 ### 6. TO CHANGE: Run the pipeline
 1. **Run the sample pipeline:**
    ```bash
-   python src/db_connectors/chroma.py
+   python src/main.py
    ```
 
 ### 7. Remove Docker Containers

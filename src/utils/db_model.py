@@ -17,7 +17,7 @@ class DBModel(ABC):
     Author: Srihari Raman
     """
     @abstractmethod
-    def index_embeddings(self, documents: list, embeddings: list):
+    def index_embeddings(self, documents: list, embeddings: list, metadata: Optional[list] = None, ids: Optional[list] = None):
         """Index the embeddings with associated metadata."""
         pass
 

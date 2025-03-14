@@ -45,7 +45,7 @@ class ChromaConnector(DBModel):
 
 
 
-    def query_db(self, query_embedding: list, top_k: int):
+    def query_db(self, query_embedding: list, top_k: int = 1):
         """
         Query the database with an embedding and return the top_k results.
         :param query_embedding: Embedding form of the query.
@@ -73,7 +73,8 @@ if __name__ == "__main__":
     # Flush out the collection
 
     # Add sample documents to the database
-    documents = ["Cookies are yummy", "Trucks are fast", "Yummy is defined as a taste that is delicious.", "Fast is defined as moving quickly."]
+    documents = ["Cookies are yummy", "Trucks are fast", "Yummy is defined as a taste that is delicious.",
+                 "Fast is defined as moving quickly."]
     embeddings = [ollama.embeddings(model="nomic-embed-text", prompt=doc)["embedding"] for doc in documents]
 
     chroma_db.index_embeddings(documents, embeddings)
