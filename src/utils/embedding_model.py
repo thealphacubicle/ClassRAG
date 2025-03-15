@@ -16,7 +16,7 @@ class EmbeddingModel(ABC):
     Author: Srihari Raman
     """
     @abstractmethod
-    def generate_embeddings(self, text: str) -> np.ndarray:
+    def generate_embeddings(self, text: str, **kwargs) -> np.ndarray:
         """Generate embeddings for the given text.
 
         Args:

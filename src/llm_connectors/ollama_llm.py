@@ -4,6 +4,7 @@ Define the Ollama connector which can load models available through the Ollama A
 """
 from src.utils.llm_model import LLMModel
 import ollama
+from ollama._types import ResponseError
 
 
 class OllamaLLM(LLMModel):
@@ -28,8 +29,20 @@ class OllamaLLM(LLMModel):
         """
         try:
             response = ollama.chat(model=self.model_name, messages=[{"role": "user", "content": prompt}])
-            return response['message']['content']
+            return response["message"]["content"]
+
+        except ResponseError as re:
+            if re.status_code == 404:
+                print(f"Model {self.model_name} not found. Attempting to pull the model.")
+                try:
+                    ollama.pull(self.model_name)
+                    print(f"Model {self.model_name} successfully pulled.")
+                    response = ollama.chat(model=self.model_name, messages=[{"role": "user", "content": prompt}])
+                    return str(response["message"]["content"])
+                except Exception as e:
+                    print(f"Error pulling model: {e}")
+                    return str("")
+
         except Exception as e:
             print(f"Error generating response: {e}")
-            return ""
-
+            return str("")

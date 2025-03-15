@@ -91,29 +91,6 @@ if __name__ == "__main__":
     print("Documents in the collection:")
     print(chroma_db.collection)
 
-    # Query the database
-    query = "What is yummy?"
-    query_embedding = ollama.embeddings(model="nomic-embed-text", prompt=query)["embedding"]
-    top_k = 2
-    results = chroma_db.query_db(query_embedding, top_k)
-    context = list(results['documents'])
-    print(context[0])
-
-    # Prompt generation
-    prompt = (
-            "Please answer the following query using the provided context.\n\n"
-            "Context:\n" + "\n".join(context[0]) + "\n\n"
-                                                "Query: " + query + "\n\n"
-                                                                    "Answer:"
-    )
-
-    # Call the Ollama LLM to generate a response.
-    response = ollama.chat(model="tinyllama:latest", messages=[{"role": "user", "content": prompt}])
-
-    # Print the response output from the LLM
-    print("Response from Ollama LLM:")
-    print(response["message"]["content"])
-
 
 
 

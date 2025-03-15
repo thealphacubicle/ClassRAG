@@ -136,10 +136,3 @@ if __name__ == "__main__":
 
     redis_db.index_embeddings(documents, embeddings, metadata)
     print("Embeddings indexed successfully.")
-
-    # Query the database
-    query = "What is the definition of yummy?"
-    query_embedding = ollama.embeddings(model="nomic-embed-text", prompt=query)["embedding"]
-    top_k = 2
-    results = redis_db.query_db(query_embedding, top_k)
-    print(results)
