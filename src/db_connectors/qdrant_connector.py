@@ -15,10 +15,15 @@ class QdrantConnector(DBModel):
         self.qdrant_client = QdrantClient(host=host, port=port)
         self.collection_name = collection_name
 
-        # Create a collection if it doesn't exist
-        if self.collection_name not in self.qdrant_client.get_collections():
-            self.qdrant_client.create_collection(self.collection_name,
-                                                 vectors_config=VectorParams(size=768, distance=Distance.COSINE))
+        collections = self.qdrant_client.get_collections().collections
+        collection_names = [col.name for col in collections]
+        if collection_name not in collection_names:
+            self.qdrant_client.create_collection(
+                collection_name,
+                vectors_config=VectorParams(size=768, distance=Distance.COSINE)
+            )
+        else:
+            print(f"Collection {collection_name} already exists.")
 
     def index_embeddings(self, documents: list, embeddings: list, metadata: list = None, ids: list = None):
         """

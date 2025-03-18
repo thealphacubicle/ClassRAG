@@ -35,4 +35,4 @@ class RAG:
         prompt = f"Context: {llm_context}\n\nQuestion: {query}\nAnswer:"
 
         # 4. Generate and return the response
-        return self.llm.generate_response(prompt), results
+        return self.llm.generate_response(prompt), [results]
