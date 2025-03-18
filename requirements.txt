@@ -4,3 +4,4 @@ redis~=5.2.1
 ollama~=0.4.7
 chromadb~=0.6.3
 pdfminer.six~=20240706
+qdrant-client~= 1.13.3

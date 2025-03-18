@@ -15,18 +15,15 @@ services:
     volumes:
       - chroma_data:/data
 
-  milvus_db:
-    image: milvusdb/milvus:v2.5.6
-    container_name: milvus_db
+  qdrant:
+    image: qdrant/qdrant
+    container_name: qdrant
     ports:
-      - "19530:19530"  # Default Milvus port for gRPC
-      - "19121:19121"  # Optional: Milvus HTTP port if needed
-    environment:
-      TZ: "UTC"      # Set timezone if necessary
+      - "6333:6333"
     volumes:
-      - milvus_data:/var/lib/milvus
+      - qdrant_data:/qdrant/storage
 
 volumes:
   redis_data:
   chroma_data:
-  milvus_data:
+  qdrant_data:
