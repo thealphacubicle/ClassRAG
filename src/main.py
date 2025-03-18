@@ -10,6 +10,7 @@ import csv
 from time import time
 from src.db_connectors.chroma_connector import ChromaConnector
 from src.db_connectors.redis_connector import RedisConnector
+from src.db_connectors.qdrant_connector import QdrantConnector
 from src.pipeline import RAG
 from src.embedding_connectors.ollama_embed import OllamaEmbed
 from src.llm_connectors.ollama_llm import OllamaLLM
@@ -26,7 +27,7 @@ if __name__ == "__main__":
     ]
 
     # Initialize the vector databases
-    dbs = [ChromaConnector(), RedisConnector()]
+    dbs = [ChromaConnector(), RedisConnector(), QdrantConnector()]
 
     # Index sample data into both vector databases
     all_data = []
@@ -47,12 +48,18 @@ if __name__ == "__main__":
                 ]
                 embeddings = [embedding_model.generate_embeddings(doc) for doc in documents]
                 metadata = [
-                    {"file": "avl_trees.pdf", "page": 1, "chunk": 1, "model_type": embedding_model.model_name},
-                    {"file": "b_plus_trees.pdf", "page": 1, "chunk": 1, "model_type": embedding_model.model_name},
-                    {"file": "key_value_databases.pdf", "page": 1, "chunk": 1, "model_type": embedding_model.model_name},
-                    {"file": "document_based_databases.pdf", "page": 1, "chunk": 1, "model_type": embedding_model.model_name},
-                    {"file": "document_based_databases.pdf", "page": 2, "chunk": 4, "model_type": embedding_model.model_name},
-                    {"file": "non_relational_databases.pdf", "page": 1, "chunk": 1, "model_type": embedding_model.model_name}
+                    {"file": "avl_trees.pdf", "page": 1, "chunk": 1, "model_type": embedding_model.model_name,
+                     "text": documents[0]},
+                    {"file": "b_plus_trees.pdf", "page": 1, "chunk": 1, "model_type": embedding_model.model_name,
+                     "text": documents[1]},
+                    {"file": "key_value_databases.pdf", "page": 1, "chunk": 1, "model_type": embedding_model.model_name,
+                     "text": documents[2]},
+                    {"file": "document_based_databases.pdf", "page": 1, "chunk": 1, "model_type": embedding_model.model_name,
+                     "text": documents[3]},
+                    {"file": "document_based_databases.pdf", "page": 2, "chunk": 4, "model_type": embedding_model.model_name,
+                     "text": documents[4]},
+                    {"file": "non_relational_databases.pdf", "page": 1, "chunk": 1, "model_type": embedding_model.model_name,
+                     "text": documents[5]}
                 ]
 
                 # Memory and time tracking for embedding indexing
