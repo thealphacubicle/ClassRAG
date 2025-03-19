@@ -1,8 +1,8 @@
 from pdfminer.high_level import extract_text
-from typing import List, Tuple, Dict
+from typing import List, Tuple, Dict, Any
 import os
 
-file_path = r"C:\Users\shree\DS4300-Class-RAG\data\raw_data"
+file_path = "/Users/srihariraman/Desktop/DS4300/DS4300_P02/DS4300-Class-RAG/data/raw_data"
 def extract_data(file_path: str) -> str:
     """
     Extracts the text from the given
@@ -21,7 +21,8 @@ def extract_data(file_path: str) -> str:
         return text_dict
     
 
-def chunk_text(text_dict: str, chunk_size: int = 500, chunk_overlap: int = 50) -> Tuple[List[str], List[Dict[str, str]]]:
+def chunk_text(text_dict: str, chunk_size: int = 500, chunk_overlap: int = 50) -> tuple[
+    list[list[str]], list[list[dict[str, int | Any]]]]:
     """
     Chunk the raw text into smaller pieces.
     :param raw_text: Raw text to be chunked.
@@ -51,10 +52,10 @@ def chunk_text(text_dict: str, chunk_size: int = 500, chunk_overlap: int = 50) -
             chunks.append(chunk)
 
             chunk_meta.append({
-                "File name": filename,
-                "Chunk #": len(chunks),
-                "Chunk size (char)": len(chunk),
-                "Chunk overlap": chunk_overlap
+                "file_name": filename,
+                "chunk_number": len(chunks),
+                "chunk_size": len(chunk),
+                "chunk_overlap": chunk_overlap
             })
 
         chunked[filename] = chunks  
@@ -62,11 +63,11 @@ def chunk_text(text_dict: str, chunk_size: int = 500, chunk_overlap: int = 50) -
 
     return list(chunked.values()), list(metadata.values())
 
-# Testing it out
-txt = extract_data(file_path)
-chunk_list, metadata_list = chunk_text(txt, 500, 50)
-print(metadata_list[11])
-print(chunk_list[11])
+if __name__ == "__main__":
+    txt = extract_data(file_path)
+    chunk_list, metadata_list = chunk_text(txt, 500, 50)
+    print(metadata_list[11])
+    print(chunk_list[11])
 
 
 
