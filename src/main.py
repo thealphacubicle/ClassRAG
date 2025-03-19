@@ -22,15 +22,15 @@ if __name__ == "__main__":
     # Initialize the LLM model
     llms = [
         OllamaLLM(model_name="tinyllama:latest"),
-        # OllamaLLM(model_name="deepseek-r1:1.5b"),
-        # OllamaLLM(model_name="gemma3:latest")
+        OllamaLLM(model_name="deepseek-r1:1.5b"),
+        OllamaLLM(model_name="gemma3:latest")
     ]
 
     # Initialize the vector databases
     dbs = [
         ChromaConnector(),
-        # RedisConnector(),
-        # QdrantConnector()
+        RedisConnector(),
+        QdrantConnector()
         ]
 
     # Initialize prompts to the LLM
