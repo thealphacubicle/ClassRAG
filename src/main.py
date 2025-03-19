@@ -114,40 +114,42 @@ if __name__ == "__main__":
                 # Create the RAG pipeline
                 rag_pipeline = RAG(embedding_model, db, llm)
 
-                # Example query
-                process = psutil.Process()
-                mem_start = process.memory_info().rss
-                st = time()
+                for prompt in base_prompts:
 
-                query = "What are AVL trees?"
-                response, query_metadata = rag_pipeline.run(query, base_prompt=base_prompts[0], top_k=1)
+                    # Example query
+                    process = psutil.Process()
+                    mem_start = process.memory_info().rss
+                    st = time()
 
-                et = time()
-                mem_end = process.memory_info().rss
-                time_taken_to_rag = et - st
-                mem_taken_to_rag = mem_end - mem_start
+                    query = "What are AVL trees?"
+                    response, query_metadata = rag_pipeline.run(query, base_prompt=prompt, top_k=1)
 
-                print("Response:", response)
-                print("RAG took", time_taken_to_rag, "seconds")
-                print("Memory increased by", mem_taken_to_rag / (1024 * 1024), "MB during RAG execution")
-                print("\n\n")
+                    et = time()
+                    mem_end = process.memory_info().rss
+                    time_taken_to_rag = et - st
+                    mem_taken_to_rag = mem_end - mem_start
 
-                all_data.append({
-                    "embedding_model": embedding_model.model_name,
-                    "llm_model": llm.model_name,
-                    "db_type": db.__class__.__name__,
-                    'base_prompt': base_prompts[0],
-                    'base_prompt_id': str(hash(base_prompts[0])),
-                    "query": query,
-                    "query_id": str(hash(query)),
-                    "response": response,
-                    "num_documents": len(chunks_for_each_document),
-                    "total_chunks": sum(len(doc) for doc in chunks_for_each_document),
-                    "time_taken_to_index": time_taken_to_index,
-                    "mem_taken_to_index": mem_taken_to_index / (1024 * 1024),
-                    "time_taken_to_rag": time_taken_to_rag,
-                    "mem_taken_to_rag": mem_taken_to_rag / (1024 * 1024)
-                })
+                    print("Response:", response)
+                    print("RAG took", time_taken_to_rag, "seconds")
+                    print("Memory increased by", mem_taken_to_rag / (1024 * 1024), "MB during RAG execution")
+                    print("\n\n")
+
+                    all_data.append({
+                        "embedding_model": embedding_model.model_name,
+                        "llm_model": llm.model_name,
+                        "db_type": db.__class__.__name__,
+                        'base_prompt': prompt,
+                        'base_prompt_id': str(hash(prompt)),
+                        "query": query,
+                        "query_id": str(hash(query)),
+                        "response": response,
+                        "num_documents": len(chunks_for_each_document),
+                        "total_chunks": sum(len(doc) for doc in chunks_for_each_document),
+                        "time_taken_to_index": time_taken_to_index,
+                        "mem_taken_to_index": mem_taken_to_index / (1024 * 1024),
+                        "time_taken_to_rag": time_taken_to_rag,
+                        "mem_taken_to_rag": mem_taken_to_rag / (1024 * 1024)
+                    })
 
     # Ensure the directory exists
     os.makedirs(os.path.join(os.getcwd(), "../data/experiment_data"), exist_ok=True)
