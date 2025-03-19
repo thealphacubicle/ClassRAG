@@ -1,8 +1,59 @@
 from pdfminer.high_level import extract_text
 from typing import List, Tuple, Dict, Any
 import os
+import re
 
 file_path = "/Users/srihariraman/Desktop/DS4300/DS4300_P02/DS4300-Class-RAG/data/raw_data"
+
+def clean_text(text: str, remove_punctuation: bool = True) -> str:
+    """
+    Clean the input text by removing unnecessary characters and formatting.
+    This includes:
+    - Replacing multiple newlines with a single newline
+    - Replacing bullet characters with a dash and a space
+    - Removing any leading "o" at the beginning of a line
+    - Removing punctuation (if specified)
+    - Replacing multiple spaces or tabs with a single space
+    - Removing extra spaces 
+
+    :param text: The raw text to clean.
+    :param remove_punctuation: If True, punctuation will be removed.
+    :return: The cleaned text.
+    """
+    # Replace multiple newlines with a single newline to keep paragraphs separate
+    text = re.sub(r'\n+', '\n', text)
+    
+    # Replace bullet characters with a dash and a space
+    text = re.sub(r'[•–—]', '- ', text)
+    
+    # Remove any leading "o" at the beginning of a line
+    text = re.sub(r'^\s*o\s+', '', text, flags=re.M)
+    
+    # Remove punctuation except for periods, commas, question marks, exclamation marks, and hyphens
+    if remove_punctuation:
+        text = re.sub(r'[^\w\s\.,?!-]', '', text)
+    
+    # Replace multiple spaces or tabs with a single space
+    text = re.sub(r'[ \t]+', ' ', text)
+    
+    # Remove extra spaces at the start and end of each line
+    lines = [line.strip() for line in text.splitlines()]
+    
+    # Add a period at the end of bullet lines if not present FOR slides with bullet points
+    new_lines = []
+    for line in lines:
+        # If the line starts with a bullet marker (e.g., "- ")
+        if line.startswith("- "):
+            # If the line is not empty and doesn't end with ., ? or !
+            if line and not re.search(r'[.!?]$', line):
+                line = line + '.'
+        new_lines.append(line)
+    
+    # Join the lines back together with newlines preserved
+    cleaned_text = "\n".join(new_lines)
+    
+    return cleaned_text
+
 def extract_data(file_path: str) -> str:
     """
     Extracts the text from the given
@@ -16,7 +67,8 @@ def extract_data(file_path: str) -> str:
             path = os.path.join(file_path, file)
 
             text = extract_text(path)
-            text_dict[file] = text\
+            cleaned_text = clean_text(text)
+            text_dict[file] = cleaned_text
             
         return text_dict
     
