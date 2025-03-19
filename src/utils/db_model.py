@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
-from typing import Optional, List, Dict
+from typing import Optional, List, Dict, Any, Tuple
+from numpy import ndarray
 
 class DBModel(ABC):
     """
@@ -16,20 +17,28 @@ class DBModel(ABC):
 
     Author: Srihari Raman
     """
+
     @abstractmethod
-    def index_embeddings(self, documents: list, embeddings: list, metadata: Optional[list] = None, ids: Optional[list] = None):
-        """Index multiple embeddings and documents with associated metadata into the database
+    def index_embeddings(
+            self,
+            documents: List[List[str]],
+            embeddings: List[List[List[ndarray]]],  # Updated type
+            metadata: Optional[List[List[Dict[str, Any]]]] = None,
+            ids: Optional[List[str]] = None
+    ) -> None:
+        """
+        Index multiple embeddings and documents with associated metadata into the database.
 
         Args:
-            documents (list): List of documents to index.
-            embeddings (list): List of embeddings to index.
-            metadata (Optional[list]): List of metadata dicts associated with the documents (optional)
-            ids (Optional[list]): List of custom IDs for the documents (optional)
+            documents (List[List[str]]): List of documents to index. Each document is a list of string chunks.
+            embeddings (List[List[float]]): List of embeddings for each document’s chunks.
+            metadata (Optional[List[List[Dict[str, Any]]]]): List of metadata dicts associated with the documents.
+            ids (Optional[List[str]]): List of custom IDs for the documents.
         """
         pass
 
     @abstractmethod
-    def query_db(self, query_embedding: list, top_k: int) -> tuple[List, Dict]:
+    def query_db(self, query_embedding: list, top_k: int = 1) -> Tuple[List[str], List[Dict]]:
         """Query the database with an embedding and return the top_k results.
 
         Args:

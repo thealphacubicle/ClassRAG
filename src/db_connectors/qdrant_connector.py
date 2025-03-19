@@ -2,6 +2,8 @@ from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, VectorParams, PointStruct
 from src.utils.db_model import DBModel
 import ollama
+from typing import List, Dict, Any, Optional, Tuple
+from numpy import ndarray
 
 class QdrantConnector(DBModel):
     """
@@ -25,31 +27,88 @@ class QdrantConnector(DBModel):
         else:
             print(f"Collection {collection_name} already exists.")
 
-    def index_embeddings(self, documents: list, embeddings: list, metadata: list = None, ids: list = None):
+    def index_embeddings(
+            self,
+            documents: List[List[str]],
+            embeddings: List[List[List[ndarray]]],
+            metadata: Optional[List[List[Dict[str, Any]]]] = None,
+            ids: Optional[List[str]] = None  # Ignored in this basic implementation
+    ) -> None:
         """
-        Index the embeddings with associated metadata.
+        Index the embeddings with associated metadata for each chunk of every document into Qdrant,
+        using basic integer IDs.
+
+        :param documents: List of documents (each document is a list of text chunks).
+        :param embeddings: List of embeddings for each document's chunks.
+        :param metadata: List of metadata for each document's chunks (optional).
+        :param ids: List of custom IDs for the documents (ignored here).
+        :return: None
         """
-        # Prepare the payload
         payload = []
-        for i, embedding in enumerate(embeddings):
-            point = PointStruct(id=ids[i] if ids else i, vector=embedding, payload=metadata[i] if metadata else {})
-            payload.append(point)
+        point_id = 0  # Use a simple global counter for point IDs.
 
-        # Upload the embeddings to Qdrant
+        for doc_index, doc in enumerate(documents):
+            for chunk_index, chunk in enumerate(doc):
+                try:
+                    # Use a basic unsigned integer as the point ID.
+                    current_id = point_id
+                    point_id += 1
+
+                    # Retrieve the embedding for the current chunk.
+                    embedding_to_index = embeddings[doc_index][chunk_index]
+
+                    # Retrieve metadata for the current chunk if available; otherwise, use an empty dict.
+                    if metadata is not None and doc_index < len(metadata) and chunk_index < len(metadata[doc_index]):
+                        chunk_metadata = metadata[doc_index][chunk_index]
+                    else:
+                        chunk_metadata = {}
+
+                    # Optionally include the text in the payload.
+                    chunk_payload = chunk_metadata.copy()
+                    chunk_payload["text"] = chunk
+
+                    # Create the point structure for Qdrant.
+                    point = PointStruct(
+                        id=current_id,
+                        vector=embedding_to_index,
+                        payload=chunk_payload
+                    )
+                    payload.append(point)
+                except Exception as e:
+                    print(f"Error preparing point for document {doc_index} chunk {chunk_index}: {e}")
+
+        # Upsert the prepared payload into Qdrant.
         status = self.qdrant_client.upsert(collection_name=self.collection_name, points=payload)
-
         print(status.status)
 
-    def query_db(self, query_embedding: list, top_k: int = 1) -> tuple[list[str], dict]:
+    def query_db(self, query_embedding: list, top_k: int = 1) -> Tuple[List[str], List[Dict]]:
         """
         Query the database with an embedding and return the top_k results.
+
+        :param query_embedding: Embedding form of the query.
+        :param top_k: Number of results to return.
+        :return:
+             A tuple containing:
+             - A list of text chunks (strings) for the top_k results.
+             - A list of metadata dictionaries corresponding to each chunk.
         """
-        results = self.qdrant_client.query_points(collection_name=self.collection_name, query=query_embedding, with_payload=True, limit=top_k).points
+        try:
+            results = self.qdrant_client.query_points(
+                collection_name=self.collection_name,
+                query=query_embedding,
+                with_payload=True,
+                limit=top_k
+            ).points
 
-        # Unpack the results
-        context, metadata = [point.payload['text'] for point in results], [point.payload for point in results]
+            # Extract the text and metadata from each point.
+            context = [point.payload.get('text', '') for point in results]
+            metadata = [point.payload for point in results]
 
-        return context, metadata
+            return context, metadata
+
+        except Exception as e:
+            print(f"Error querying Qdrant: {e}")
+            return [], []
 
 if __name__ == "__main__":
     qdb_connector = QdrantConnector()

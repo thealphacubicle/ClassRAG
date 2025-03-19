@@ -1,8 +1,8 @@
 import chromadb
 from src.utils.db_model import DBModel
-import ollama
 from typing import List, Dict
-
+from typing import Any, Optional, Tuple
+from numpy import ndarray
 
 class ChromaConnector(DBModel):
     """
@@ -24,72 +24,77 @@ class ChromaConnector(DBModel):
         self.collection_name = collection_name
         self.collection = self.chroma_client.get_or_create_collection(self.collection_name)
 
-    def index_embeddings(self, documents: list, embeddings: list, metadata: list = None, ids: list = None):
+    def index_embeddings(
+            self,
+            documents: List[List[str]],
+            embeddings: List[List[List[ndarray]]],  # Updated type
+            metadata: Optional[List[List[Dict[str, Any]]]] = None,
+            ids: Optional[List[str]] = None
+    ) -> None:
         """
         Index the embeddings with associated metadata.
 
-        :param documents: List of documents to index.
-        :param embeddings: List of embeddings to index.
-        :param metadata: List of metadata associated with the documents (optional)
-        :param ids: List of custom IDs for the documents (optional)
+        :param documents: List of documents to index (each document is a list of chunks).
+        :param embeddings: List of embeddings for each document's chunks.
+        :param metadata: List of metadata for each document's chunks (optional).
+        :param ids: List of custom IDs for the documents (optional).
         """
-        try:
-            # Check if custom IDs are passed. If not, create generic ones
-            if ids is None:
-                ids = [f"id{i}" for i in range(len(documents))]
+        # Generate a base ID for each document if none provided.
+        if ids is None:
+            ids = [f"doc_{i}" for i in range(len(documents))]
 
-            # Add the embeddings
-            self.collection.add(ids=ids, embeddings=embeddings, documents=documents, metadatas=metadata)
+        # Index each chunk of each document individually.
+        for i, document in enumerate(documents):
+            for j, chunk in enumerate(document):
+                try:
+                    # Optionally, create a unique ID for each chunk.
+                    unique_id = f"{ids[i]}_{j}"
 
-        except Exception as e:
-            print(f"Error indexing embeddings: {e}")
+                    # Extract the corresponding embedding and metadata.
+                    embedding_to_index = embeddings[i][j]
+                    metadata_to_index = metadata[i][j] if metadata is not None else {}
 
+                    # Wrap values in lists if the collection expects batch inputs.
+                    self.collection.add(
+                        ids=[unique_id],
+                        embeddings=[embedding_to_index],
+                        documents=[chunk],
+                        metadatas=[metadata_to_index]
+                    )
 
+                except Exception as e:
+                    print(f"Error indexing embeddings for document {i} chunk {j}: {e}")
 
-    def query_db(self, query_embedding: list, top_k: int = 1) -> tuple[List[str], Dict]:
+    def query_db(self, query_embedding: list, top_k: int = 1) -> Tuple[List[str], List[Dict]]:
         """
         Query the database with an embedding and return the top_k results.
+
         :param query_embedding: Embedding form of the query.
         :param top_k: Number of results to return.
         :return:
-            context: List of documents retrieved from the database.
-            results: List of all metadata retrieved from the database.
+             A tuple containing:
+             - A list of text chunks (strings) for the top_k results.
+             - A list of metadata dictionaries corresponding to each chunk.
         """
         try:
-            # Perform the search
-            results = self.collection.query(query_embedding, n_results=top_k,
-                                            include=["documents", "embeddings", "metadatas"])
+            # Perform the search in Chroma.
+            results = self.collection.query(
+                query_embedding,
+                n_results=top_k,
+                include=["documents", "embeddings", "metadatas"]
+            )
 
-            context = results['documents'][0]
+            # Extract the text chunks and metadata.
+            # 'documents' should be a list of text chunks (strings) and
+            # 'metadatas' should be a list of dictionaries for each chunk.
+            documents = results.get("documents", [])[0]
+            metadatas = results.get("metadatas", [])
 
-            return context, results
+            return documents, metadatas
 
         except Exception as e:
             print(f"Error querying database: {e}")
-            return [], {}
-
-
-if __name__ == "__main__":
-
-    # SAMPLE IMPLEMENTATION
-    chroma_db = ChromaConnector()
-
-    # Check if ChromaDB connection exists
-    assert chroma_db.chroma_client.heartbeat() is not None, "ChromaDB connection failed"
-
-    # Flush out the collection
-
-    # Add sample documents to the database
-    documents = ["Cookies are yummy", "Trucks are fast", "Yummy is defined as a taste that is delicious.",
-                 "Fast is defined as moving quickly."]
-    embeddings = [ollama.embeddings(model="nomic-embed-text", prompt=doc)["embedding"] for doc in documents]
-
-    chroma_db.index_embeddings(documents, embeddings)
-    print("Embeddings indexed successfully.")
-
-    # Print out all the documents in the collection
-    print("Documents in the collection:")
-    print(chroma_db.collection)
+            return [], []
 
 
 

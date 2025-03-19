@@ -1,9 +1,9 @@
 import redis
 from src.utils.db_model import DBModel
 from redis.commands.search.query import Query
-import ollama
 import numpy as np
-from typing import List, Dict
+from numpy import ndarray
+from typing import List, Dict, Any, Optional, Tuple
 
 
 class RedisConnector(DBModel):
@@ -32,74 +32,96 @@ class RedisConnector(DBModel):
         # Create the index
         self._create_hnsw_index()
 
-    def index_embeddings(self, documents: list, embeddings: list, metadata: list = None, ids: list = None):
+    def index_embeddings(
+            self,
+            documents: List[List[str]],
+            embeddings: List[List[List[ndarray]]],
+            metadata: Optional[List[List[Dict[str, Any]]]] = None,
+            ids: Optional[List[str]] = None
+    ) -> None:
         """
-        Index the embeddings with associated metadata.
-        :param documents: List of documents to index.
-        :param embeddings: List of embeddings to index.
-        :param metadata: List of metadata dicts associated with the documents (optional)
-        :param ids: List of custom IDs for the documents (optional)
+        Index the embeddings with associated metadata for each chunk of every document.
+
+        :param documents: List of documents to index (each document is a list of chunks).
+        :param embeddings: List of embeddings for each document's chunks.
+        :param metadata: List of metadata for each document's chunks (optional).
+        :param ids: List of custom IDs for the documents (optional).
         :return: None
         """
-        for i, embedding in enumerate(embeddings):
-            # Use metadata for this document or an empty dict if not provided
-            meta = metadata[i] if metadata is not None else {}
+        for i, doc in enumerate(documents):
+            for j, chunk in enumerate(doc):
+                try:
+                    # Get metadata for the current chunk if provided; otherwise, use an empty dict.
+                    if metadata is not None and i < len(metadata) and j < len(metadata[i]):
+                        meta = metadata[i][j]
+                    else:
+                        meta = {}
 
-            # If custom IDs are provided, use the document prefix to create unique key
-            if ids is not None:
-                key = f"{self.doc_prefix}:{ids[i]}"
+                    # Build a unique key:
+                    # If custom document IDs are provided, combine the document ID and chunk index.
+                    if ids is not None and i < len(ids):
+                        key = f"{self.doc_prefix}:{ids[i]}_{j}"
+                    else:
+                        # If metadata is available, create a key based on sorted metadata items.
+                        if meta:
+                            key_parts = [f"{k}_{meta[k]}" for k in sorted(meta.keys())]
+                            key_suffix = "_".join(key_parts)
+                            key = f"{self.doc_prefix}:{key_suffix}"
+                        else:
+                            # Fallback: use document and chunk indices.
+                            key = f"{self.doc_prefix}:{i}_{j}"
 
-            else:
-                # Dynamically build key from metadata: sort keys for consistency.
-                if meta:
-                    key_parts = [f"{k}_{meta[k]}" for k in sorted(meta.keys())]
-                    key_suffix = "_".join(key_parts)
-                    key = f"{self.doc_prefix}:{key_suffix}"
-                else:
-                    key = f"{self.doc_prefix}:{i}"
+                    # Convert the embedding vector for the current chunk to bytes.
+                    embedding_bytes = np.array(embeddings[i][j], dtype=np.float32).tobytes()
 
-            # Create the mapping: start with metadata and update with text and embedding.
-            redis_mapping = meta.copy()
-            redis_mapping.update({
-                "text": documents[i],
-                "embedding": np.array(embedding, dtype=np.float32).tobytes(),  # Store as a byte array
-            })
+                    # Create a mapping: start with metadata and add the chunk text and embedding.
+                    redis_mapping = meta.copy()
+                    redis_mapping.update({
+                        "text": chunk,
+                        "embedding": embedding_bytes,
+                    })
 
-            self.redis_client.hset(key, mapping=redis_mapping)
+                    self.redis_client.hset(key, mapping=redis_mapping)
 
-    def query_db(self, query_embedding: list, top_k: int = 1) -> tuple[List[str], Dict]:
+                except Exception as e:
+                    print(f"Error indexing embeddings for document {i} chunk {j}: {e}")
+
+    def query_db(self, query_embedding: list, top_k: int = 1) -> Tuple[List[str], List[Dict]]:
         """
         Query the database with an embedding and return the top_k results.
+
         :param query_embedding: Embedding form of the query.
         :param top_k: Number of results to return.
         :return:
-            context: List of documents retrieved from the database.
-            metadata: List of all metadata retrieved from the database.
+            A tuple containing:
+                - A list of text chunks (strings) for the top_k results.
+                - A list of metadata dictionaries corresponding to each chunk.
         """
-        # Convert embedding to bytes for Redis search
+        # Convert the query embedding to bytes for Redis search.
         query_vector = np.array(query_embedding, dtype=np.float32).tobytes()
 
         try:
-            # Build the vector similarity search query to return all fields
+            # Build the vector similarity search query.
             q = (
                 Query(f"*=>[KNN {top_k} @embedding $vec AS vector_distance]")
                 .sort_by("vector_distance")
                 .dialect(2)
             )
 
-            # Run search query.
+            # Execute the search query.
             results = self.redis_client.ft(self.index_name).search(
                 q, query_params={"vec": query_vector}
             )
 
-            context, metadata = [doc.text for doc in results.docs], results.docs[0].__dict__
+            # Extract the text and metadata for each result.
+            contexts = [doc.text for doc in results.docs]
+            metadata_list = [doc.__dict__ for doc in results.docs]
 
-            # Return text and metadata of the top_k results
-            return context, metadata
+            return contexts, metadata_list
 
         except Exception as e:
             print(f"Error querying database: {e}")
-            return [], {}
+            return [], []
 
     def _create_hnsw_index(self):
         try:
@@ -115,24 +137,3 @@ class RedisConnector(DBModel):
             """
         )
         print("Index created successfully.")
-
-
-if __name__ == "__main__":
-    # SAMPLE IMPLEMENTATION
-    redis_db = RedisConnector()
-
-    # Check if Redis connection exists
-    assert redis_db.redis_client.ping(), "Redis connection failed"
-
-    # Create the index
-    redis_db._create_hnsw_index()
-
-    # Add sample documents to the database
-    documents = ["Cookies are yummy", "Trucks are fast", "Yummy is defined as a taste that is delicious.",
-                 "Fast is defined as moving quickly."]
-    embeddings = [ollama.embeddings(model="nomic-embed-text", prompt=doc)["embedding"] for doc in documents]
-    metadata = [{"file": "file1", "page": 1, "chunk": 1}, {"file": "file2", "page": 2, "chunk": 2},
-                {"file": "file3", "page": 3, "chunk": 3}, {"file": "file4", "page": 4, "chunk": 4}]
-
-    redis_db.index_embeddings(documents, embeddings, metadata)
-    print("Embeddings indexed successfully.")
