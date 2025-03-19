@@ -37,9 +37,22 @@ def clean_text(text: str, remove_punctuation: bool = True) -> str:
     text = re.sub(r'[ \t]+', ' ', text)
     
     # Remove extra spaces at the start and end of each line
-    text = "\n".join(line.strip() for line in text.splitlines())
+    lines = [line.strip() for line in text.splitlines()]
     
-    return text
+    # Add a period at the end of bullet lines if not present FOR slides with bullet points
+    new_lines = []
+    for line in lines:
+        # If the line starts with a bullet marker (e.g., "- ")
+        if line.startswith("- "):
+            # If the line is not empty and doesn't end with ., ? or !
+            if line and not re.search(r'[.!?]$', line):
+                line = line + '.'
+        new_lines.append(line)
+    
+    # Join the lines back together with newlines preserved
+    cleaned_text = "\n".join(new_lines)
+    
+    return cleaned_text
 
 def extract_data(file_path: str) -> str:
     """
@@ -104,8 +117,8 @@ def chunk_text(text_dict: str, chunk_size: int = 500, chunk_overlap: int = 50) -
 # Testing it out
 txt = extract_data(file_path)
 chunk_list, metadata_list = chunk_text(txt, 500, 50)
-print(metadata_list[11])
-print(chunk_list[11])
+print(metadata_list[0])
+print(chunk_list[0])
 
 sample_text = """
    This is a sample text.   It includes extra spaces, bullet points like • and –,
