@@ -14,7 +14,7 @@ class ChromaConnector(DBModel):
         """
         Initialize the ChromaDB connector with the given host, port, database name, and embedding function. The
         embedding function must either be a pre-defined function from chromadb.EmbeddingFunction or a custom
-        implementation of the EmbeddingFunction protocol.
+        implementation of the EmbeddingFunction protocol. Currently only supports embeddings of dimension 768.
 
         :param host: The host address of the ChromaDB server.
         :param port: The port number of the ChromaDB server, default is 8000.

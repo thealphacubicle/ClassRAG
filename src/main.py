@@ -5,7 +5,6 @@ Author: Srihari Raman, Alexander Zhen, Shreesh Dassarkar
 """
 import psutil
 import os
-from hashlib import sha256
 import csv
 from time import time
 from src.db_connectors.chroma_connector import ChromaConnector
@@ -17,8 +16,9 @@ from src.llm_connectors.ollama_llm import OllamaLLM
 
 if __name__ == "__main__":
     # Initialize the embedding model
-    embedding_models = [OllamaEmbed(model_name=model_name) for model_name in ['nomic-embed-text']]
-
+    embedding_models = [OllamaEmbed(model_name=model_name) for model_name in ["bge-large",
+                                                                              "snowflake-arctic-embed2",
+                                                                              "mxbai-embed-large"]]
     # Initialize the LLM model
     llms = [
         OllamaLLM(model_name="tinyllama:latest"),
@@ -27,7 +27,7 @@ if __name__ == "__main__":
     ]
 
     # Initialize the vector databases
-    dbs = [ChromaConnector(), RedisConnector(), QdrantConnector()]
+    dbs = [ChromaConnector(), RedisConnector(),QdrantConnector()]
 
     # Index sample data into both vector databases
     all_data = []

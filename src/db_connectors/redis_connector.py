@@ -11,7 +11,7 @@ class RedisConnector(DBModel):
     Connector implementation for Redis vector database (inherited from DBModel abstract class).
     """
     def __init__(self, host: str = "localhost", port: int = 6379, db: int = 0, index_name: str = "embedding_index",
-                 distance_metric: str = "COSINE", doc_prefix: str = "doc:", vector_dim: int = 768):
+                 distance_metric: str = "COSINE", doc_prefix: str = "doc:", vector_dim: int = 1024):
         """
         Initialize the Redis connector with the given host and port.
 
@@ -111,7 +111,7 @@ class RedisConnector(DBModel):
             f"""
             FT.CREATE {self.index_name} ON HASH PREFIX 1 {"doc:"}
             SCHEMA text TEXT
-            embedding VECTOR HNSW 6 DIM {768} TYPE FLOAT32 DISTANCE_METRIC {self.distance_metric}
+            embedding VECTOR HNSW 6 DIM {self.vector_dim} TYPE FLOAT32 DISTANCE_METRIC {self.distance_metric}
             """
         )
         print("Index created successfully.")

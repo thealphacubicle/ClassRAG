@@ -20,7 +20,7 @@ class QdrantConnector(DBModel):
         if collection_name not in collection_names:
             self.qdrant_client.create_collection(
                 collection_name,
-                vectors_config=VectorParams(size=768, distance=Distance.COSINE)
+                vectors_config=VectorParams(size=1024, distance=Distance.COSINE)
             )
         else:
             print(f"Collection {collection_name} already exists.")
