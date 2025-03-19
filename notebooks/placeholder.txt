@@ -1,1 +1,0 @@
-This folder is for storing Jupyter notebooks (if needed).
