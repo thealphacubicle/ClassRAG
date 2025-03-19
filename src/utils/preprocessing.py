@@ -39,20 +39,15 @@ def clean_text(text: str, remove_punctuation: bool = True) -> str:
     # Remove extra spaces at the start and end of each line
     lines = [line.strip() for line in text.splitlines()]
     
-    # Add a period at the end of bullet lines if not present FOR slides with bullet points
+    # Add a period to any line that doesn't already end with punctuation
     new_lines = []
     for line in lines:
-        # If the line starts with a bullet marker (e.g., "- ")
-        if line.startswith("- "):
-            # If the line is not empty and doesn't end with ., ? or !
-            if line and not re.search(r'[.!?]$', line):
-                line = line + '.'
+        # If the line is not empty and doesn't end with . ! or ?
+        if line and not re.search(r'[.!?]$', line):
+            line += "."
         new_lines.append(line)
     
-    # Join the lines back together with newlines preserved
-    cleaned_text = "\n".join(new_lines)
-    
-    return cleaned_text
+    return "\n".join(new_lines)
 
 def extract_data(file_path: str) -> str:
     """
