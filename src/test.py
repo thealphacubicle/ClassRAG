@@ -32,14 +32,10 @@ if __name__ == '__main__':
 
     # Run RAG
     rag_pipeline = RAG(embedding_model, db, llm)
-    query = """Add 23 to the AVL Tree below.  What imbalance case is created with inserting 23?
-
-		30
-	     /  \
-	    25  35
-	   /
-  20	"""
-    prompt = ("Use the following context to answer the query as accurately as possible.")
+    query = """What is disk-based indexing and why is it important for database systems?"""
+    prompt = ("Use the following context to answer the query as accurately as possible. Be as direct and concise as possible and answer within 2 sentences.")
     response, query_metadata = rag_pipeline.run(query, base_prompt=prompt, top_k=1)
-
     print("Response:", response)
+
+    # Cosine simialrity between query and response
+    print("Similarity:", query_metadata["response_similarity_to_query"])

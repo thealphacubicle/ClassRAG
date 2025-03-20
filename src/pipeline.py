@@ -1,6 +1,9 @@
+from typing import Any
+from numpy import ndarray
 from src.utils.embedding_model import EmbeddingModel
 from src.utils.db_model import DBModel
 from src.utils.llm_model import LLMModel
+import numpy as np
 
 
 class RAG:
@@ -15,7 +18,8 @@ class RAG:
         self.vector_db = vector_db
         self.llm = llm
 
-    def run(self, query: str, base_prompt: str,top_k: int = 1) -> tuple[str, list]:
+    def run(self, query: str, base_prompt: str,top_k: int = 1) -> tuple[
+        str, dict[str, ndarray | str | list[list[dict]] | Any]]:
         """
         Run the RAG pipeline with the given query and return the response.
         :param query: Query from the user.
@@ -36,5 +40,22 @@ class RAG:
         # 3. Formulate the full prompt for the LLM
         prompt = base_prompt + f"Context: {llm_context}\n\nQuestion: {query}\nAnswer:"
 
+        llm_response = self.llm.generate_response(prompt)
+        response_embedding = self.embedding_model.generate_embeddings(llm_response)
+
+        # Create the metadata that RAG will return
+        query_metadata = {
+            "query": query,
+            "query_embedding": query_embedding,
+            "llm_context": llm_context,
+            "prompt": prompt,
+            "db_metadata": [results],
+            "response_similarity_to_query": self.cosine_similarity(response_embedding, query_embedding)
+        }
+
         # 4. Generate and return the response
-        return self.llm.generate_response(prompt), [results]
+        return llm_response, query_metadata
+
+    @staticmethod
+    def cosine_similarity(embedding1, embedding2):
+        return np.dot(embedding1, embedding2) / (np.linalg.norm(embedding1) * np.linalg.norm(embedding2))

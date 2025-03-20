@@ -20,6 +20,7 @@ if __name__ == "__main__":
     embedding_models = [OllamaEmbed(model_name=model_name) for model_name in ["bge-large",
                                                                               "snowflake-arctic-embed2",
                                                                               "mxbai-embed-large"]]
+
     # Initialize the LLM model
     llms = [
         OllamaLLM(model_name="tinyllama:latest"),
@@ -93,7 +94,7 @@ if __name__ == "__main__":
                 print("Time taken to index:", time_taken_to_index, "seconds")
                 print("Memory increased by", mem_taken_to_index / (1024 * 1024), "MB during indexing")
                 print("Embeddings indexed successfully.")
-    #
+
                 # Create the RAG pipeline
                 rag_pipeline = RAG(embedding_model, db, llm)
 
@@ -128,6 +129,7 @@ if __name__ == "__main__":
                         "query": query,
                         "query_id": str(hash(query)),
                         "response": response,
+                        "response_similarity_to_query": query_metadata["response_similarity_to_query"],
                         "num_documents": len(chunks_for_each_document),
                         "total_chunks": sum(len(doc) for doc in chunks_for_each_document),
                         "time_taken_to_index": time_taken_to_index,
