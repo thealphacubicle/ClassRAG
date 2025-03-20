@@ -125,15 +125,16 @@ class RedisConnector(DBModel):
 
     def _create_hnsw_index(self):
         try:
-            self.redis_client.execute_command(f"FT.DROPINDEX {self.index_name} DD")
+            # Check if the index already exists
+            self.redis_client.execute_command(f"FT.INFO {self.index_name}")
+            print("Index already exists. Skipping creation.")
         except redis.exceptions.ResponseError:
-            pass
-
-        self.redis_client.execute_command(
-            f"""
-            FT.CREATE {self.index_name} ON HASH PREFIX 1 {"doc:"}
-            SCHEMA text TEXT
-            embedding VECTOR HNSW 6 DIM {self.vector_dim} TYPE FLOAT32 DISTANCE_METRIC {self.distance_metric}
-            """
-        )
-        print("Index created successfully.")
+            # Index does not exist, create it
+            self.redis_client.execute_command(
+                f"""
+                FT.CREATE {self.index_name} ON HASH PREFIX 1 {"doc:"}
+                SCHEMA text TEXT
+                embedding VECTOR HNSW 6 DIM {self.vector_dim} TYPE FLOAT32 DISTANCE_METRIC {self.distance_metric}
+                """
+            )
+            print("Index created successfully.")
