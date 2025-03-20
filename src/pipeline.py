@@ -30,6 +30,7 @@ class RAG:
 
         # 2. Query the database to retrieve context
         context, results = self.vector_db.query_db(query_embedding, top_k)
+        print("Context that the model is using: ", context)
         llm_context = " ".join(context)
 
         # 3. Formulate the full prompt for the LLM

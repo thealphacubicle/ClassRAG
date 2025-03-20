@@ -13,6 +13,7 @@ from src.db_connectors.qdrant_connector import QdrantConnector
 from src.pipeline import RAG
 from src.embedding_connectors.ollama_embed import OllamaEmbed
 from src.llm_connectors.ollama_llm import OllamaLLM
+import src.utils.preprocessing as tp
 
 if __name__ == "__main__":
     # Initialize the embedding model
@@ -35,11 +36,21 @@ if __name__ == "__main__":
 
     # Initialize prompts to the LLM
     base_prompts = [
-        """You are a helpful AI assistant. Use the following context to answer the query as accurately as possible.""",
-        "You are a smart AI assistant well-versed in all things computer science. "
+        """You are an AI assistant. Use the following context to answer the query as accurately as possible.""",
+        """You are an AI assistant. Use the following context to answer the query as accurately as possible.
+        Directly answer my question using pertinent information from the context.""",
+        """You are a genius AI assistant. Use the following context to answer the query as accurately as possible.""",
+        """You are a genius AI assistant. Use the following context to answer the query as accurately as possible.
+        Directly answer my question using pertinent information from the context.""",
         "Use the following context to answer the query as accurately as possible.",
-        """You are a genius in all things related to databases and computer science. Use the following context to 
-        answer the query as accurately as possible."""
+        "Use the following context to answer the query as accurately as possible. "
+        "Directly answer my question using pertinent information from the context."
+    ]
+
+    queries = [
+        "What is an AVL tree?",
+        "How are document databases different from relational databases?",
+        "What is an elephant?"
     ]
 
     # Index sample data into both vector databases
@@ -51,48 +62,19 @@ if __name__ == "__main__":
                 print("Using embedding model:", embedding_model.model_name)
                 print("Using LLM model:", llm.model_name)
 
-                # Two documents, each split into two coherent chunks.
-                chunks_for_each_document = [
-                    [
-                        "AVL Trees are self-balancing binary search trees.",
-                        "They maintain balance through rotations and structured insertions."
-                    ],
-                    [
-                        "B+ Trees are a type of self-balancing tree data structure.",
-                        "They are widely used in databases for efficient indexing."
-                    ]
-                ]
+                # Extract text from the raw data source (PDFs)
+                chunks_for_each_document, metadata_for_chunks = tp.chunk_text(tp.extract_data("../data/raw_data"),
+                                                                              100, 50)
+
+                # Add the embedding model name to the metadata
+                for doc in metadata_for_chunks:
+                    for chunk in doc:
+                        chunk["model_type"] = embedding_model.model_name
 
                 # Generate embeddings for each chunk in each document.
-                # The resulting structure is a list (per document) of lists (per chunk) of embedding vectors.
                 embedding_for_chunks = [
                     [embedding_model.generate_embeddings(chunk) for chunk in document]
                     for document in chunks_for_each_document
-                ]
-
-                # Create metadata for each chunk.
-                # Here we use list comprehensions to generate metadata entries that correspond to each chunk.
-                metadata_for_chunks = [
-                    [
-                        {
-                            "file_name": "sample_data.pdf",
-                            "chunk_number": idx + 1,  # Using 1-indexing for readability.
-                            "chunk_size": len(chunk),  # Example: use the length of the chunk.
-                            "chunk_overlap": 50,
-                            "model_type": embedding_model.model_name
-                        }
-                        for idx, chunk in enumerate(chunks_for_each_document[0])
-                    ],
-                    [
-                        {
-                            "file_name": "b+_trees_data.pdf",
-                            "chunk_number": idx + 1,
-                            "chunk_size": len(chunk),
-                            "chunk_overlap": 50,
-                            "model_type": embedding_model.model_name
-                        }
-                        for idx, chunk in enumerate(chunks_for_each_document[1])
-                    ]
                 ]
 
                 # Memory and time tracking for embedding indexing
@@ -100,6 +82,7 @@ if __name__ == "__main__":
                 mem_start = process.memory_info().rss
                 st = time()
 
+                # Index the embeddings into the database
                 db.index_embeddings(chunks_for_each_document, embedding_for_chunks, metadata_for_chunks)
 
                 et = time()
@@ -110,7 +93,7 @@ if __name__ == "__main__":
                 print("Time taken to index:", time_taken_to_index, "seconds")
                 print("Memory increased by", mem_taken_to_index / (1024 * 1024), "MB during indexing")
                 print("Embeddings indexed successfully.")
-
+    #
                 # Create the RAG pipeline
                 rag_pipeline = RAG(embedding_model, db, llm)
 
@@ -121,7 +104,7 @@ if __name__ == "__main__":
                     mem_start = process.memory_info().rss
                     st = time()
 
-                    query = "What are AVL trees?"
+                    query = "What do DB systems aim to minimize with relation to HDD and SDD?"
                     response, query_metadata = rag_pipeline.run(query, base_prompt=prompt, top_k=1)
 
                     et = time()
@@ -129,6 +112,8 @@ if __name__ == "__main__":
                     time_taken_to_rag = et - st
                     mem_taken_to_rag = mem_end - mem_start
 
+                    print("*"*50)
+                    print("Prompt:", prompt)
                     print("Response:", response)
                     print("RAG took", time_taken_to_rag, "seconds")
                     print("Memory increased by", mem_taken_to_rag / (1024 * 1024), "MB during RAG execution")
