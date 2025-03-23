@@ -18,7 +18,7 @@ class RAG:
         self.vector_db = vector_db
         self.llm = llm
 
-    def run(self, query: str, base_prompt: str,top_k: int = 1) -> tuple[
+    def run(self, query: str, base_prompt: str, use_context=True, top_k: int = 1) -> tuple[
         str, dict[str, ndarray | str | list[list[dict]] | Any]]:
         """
         Run the RAG pipeline with the given query and return the response.
@@ -32,24 +32,33 @@ class RAG:
         # 1. Generate embedding for the query
         query_embedding = self.embedding_model.generate_embeddings(query)
 
-        # 2. Query the database to retrieve context
-        context, results = self.vector_db.query_db(query_embedding, top_k)
-        print("Context that the model is using: ", context)
-        llm_context = " ".join(context)
+        # If told not to use context, generate response directly
+        if not use_context:
+            # If no context is needed, generate response directly
+            prompt = base_prompt + f"\n\nQuestion: {query}\nAnswer:"
+            llm_response = self.llm.generate_response(prompt)
 
-        # 3. Formulate the full prompt for the LLM
-        prompt = base_prompt + f"Context: {llm_context}\n\nQuestion: {query}\nAnswer:"
+        # Else, query DB and get context
+        else:
+            context, results = self.vector_db.query_db(query_embedding, top_k)
+            print("Context that the model is using: ", context)
+            llm_context = " ".join(context)
 
-        llm_response = self.llm.generate_response(prompt)
+            # 3. Formulate the full prompt for the LLM
+            prompt = base_prompt + f"Context: {llm_context}\n\nQuestion: {query}\nAnswer:"
+
+            llm_response = self.llm.generate_response(prompt)
+
+        # Generate embedding for response (for similarity to query)
         response_embedding = self.embedding_model.generate_embeddings(llm_response)
 
         # Create the metadata that RAG will return
         query_metadata = {
             "query": query,
             "query_embedding": query_embedding,
-            "llm_context": llm_context,
+            "llm_context": llm_context if use_context else None,
             "prompt": prompt,
-            "db_metadata": [results],
+            "db_metadata": [results] if use_context else None,
             "response_similarity_to_query": self.cosine_similarity(response_embedding, query_embedding)
         }
 
@@ -57,5 +66,11 @@ class RAG:
         return llm_response, query_metadata
 
     @staticmethod
-    def cosine_similarity(embedding1, embedding2):
+    def cosine_similarity(embedding1: np.ndarray, embedding2: np.ndarray) -> float:
+        """
+        Calculate the cosine similarity between two embeddings.
+        :param embedding1: First embedding
+        :param embedding2: Second embedding
+        :return: Cosine similarity between the two embeddings
+        """
         return np.dot(embedding1, embedding2) / (np.linalg.norm(embedding1) * np.linalg.norm(embedding2))
