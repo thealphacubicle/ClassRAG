@@ -50,9 +50,7 @@ These models produce 1024-dimensional vectors, which were then indexed in one of
 
 ### 4. Chunking & Preprocessing
 
-We experimented with various chunking strategies (e.g., fixed-length, semantic-based) and preprocessing methods (e.g., token cleaning, lowercasing) to determine their impact on retrieval accuracy and final LLM responses.
-
----
+We followed an overlay-based chunking strategy with thresholds of 100 and 200 words. Chunks were stored in a 2-D list, with each sublist representing the chunks from each document. Relevant metadata for each chunk was also passed through into a 2-D list.
 
 ## Data Collection
 
@@ -116,14 +114,17 @@ Key points of our analysis include:
 
 ## Observations & Next Steps
 
-1. **Database Trade-offs**  
-   Each vector database exhibited unique performance characteristics under different loads and data sizes. Selecting the optimal database may depend on specific project requirements (e.g., speed vs. memory footprint).
+1. **Importance of prompt engineering** 
 
-2. **Model Suitability**  
-   Not all LLMs performed equally well on every dataset. Larger models often provided more contextually rich responses but at a higher computational cost.
+An immportant thing we noticed was that different LLMs respond differently to minor changes in prompts. For instance, some models performed better when more supportive and encouraging language was used in the prompt. Others responded better when asked to be direct or upon specific instructions. In any case, the way a question is asked is also very significant. The output varied significantly when questions were more strictly defined versus when the questions encouraged more "creative" thinking.
 
-3. **Embedding Quality**  
-   Embedding models influenced retrieval precision. Embeddings that better capture semantic relationships tended to improve the relevance of retrieved chunks.
+2. **Model Suitability**
+
+Not all LLMs performed equally well. The larger models performed a lot better in handling the "grey areas" that arose from certain questions, while the smaller models were a lot more context dependent, so they did not perform well with ambiguity.
+
+3. **Embedding and Database Quality**
+
+The choice of database and embedding model was not as significant as other factors, but did have some effects on memory, operating speed, and quality of answers.
 
 4. **Future Work**  
    - **Additional Databases**: Investigate other vector databases like Milvus or Faiss.  
