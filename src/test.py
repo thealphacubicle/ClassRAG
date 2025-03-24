@@ -6,7 +6,7 @@ import src.utils.preprocessing as tp
 
 
 if __name__ == '__main__':
-    NEED_TO_INDEX = True
+    NEED_TO_INDEX = False
 
     # Define parameters
     db = RedisConnector()
@@ -32,9 +32,10 @@ if __name__ == '__main__':
 
     # Run RAG
     rag_pipeline = RAG(embedding_model, db, llm)
-    query = """What is disk-based indexing and why is it important for database systems?"""
-    prompt = ("Use the following context to answer the query as accurately as possible. Be as direct and concise as possible and answer within 2 sentences.")
-    response, query_metadata = rag_pipeline.run(query, base_prompt=prompt, top_k=1)
+    query = """Briefly describe how a key/value store can be used as a feature store. """
+    prompt = ("Use the following context to answer the query as accurately as possible. Be as direct and concise as "
+              "possible and answer within 2 sentences.")
+    response, query_metadata = rag_pipeline.run(query, base_prompt=prompt, use_context=False, top_k=3)
     print("Response:", response)
 
     # Cosine simialrity between query and response
