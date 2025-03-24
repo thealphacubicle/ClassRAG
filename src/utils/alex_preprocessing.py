@@ -3,6 +3,7 @@ from typing import List, Tuple, Dict
 import os
 import re
 
+
 file_path = "C:\\Users\\thisi\\OneDrive\\Desktop\\DS4300-P02\\DS4300-Class-RAG\\data\\raw_data"
 
 def clean_text(text: str, remove_punctuation: bool = True) -> str:
@@ -15,6 +16,9 @@ def clean_text(text: str, remove_punctuation: bool = True) -> str:
     - Removing punctuation (if specified)
     - Replacing multiple spaces or tabs with a single space
     - Removing extra spaces 
+    - Trimming extra spaces on each line
+    - Adding a period at the end of any line that doesn't end with sentence-ending punctuation
+    - Removing stray punctuation following bullet markers
 
     :param text: The raw text to clean.
     :param remove_punctuation: If True, punctuation will be removed.
@@ -47,7 +51,13 @@ def clean_text(text: str, remove_punctuation: bool = True) -> str:
             line += "."
         new_lines.append(line)
     
-    return "\n".join(new_lines)
+    cleaned_text = "\n".join(new_lines)
+    
+    # Remove stray punctuation after bullet markers (convert "- ," to "- " and ",." to ".")
+    cleaned_text = re.sub(r'-\s*,', '- ', cleaned_text)
+    cleaned_text = re.sub(r',\.', '.', cleaned_text)
+    
+    return cleaned_text
 
 def extract_data(file_path: str) -> str:
     """
