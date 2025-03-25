@@ -105,38 +105,38 @@ if __name__ == "__main__":
                     mem_start = process.memory_info().rss
                     st = time()
 
-                    query = "What do DB systems aim to minimize with relation to HDD and SDD?"
-                    response, query_metadata = rag_pipeline.run(query, base_prompt=prompt, top_k=1)
+                    for query in queries:
+                        response, query_metadata = rag_pipeline.run(query, base_prompt=prompt, top_k=1)
 
-                    et = time()
-                    mem_end = process.memory_info().rss
-                    time_taken_to_rag = et - st
-                    mem_taken_to_rag = mem_end - mem_start
+                        et = time()
+                        mem_end = process.memory_info().rss
+                        time_taken_to_rag = et - st
+                        mem_taken_to_rag = mem_end - mem_start
 
-                    print("*"*50)
-                    print("Prompt:", prompt)
-                    print("Response:", response)
-                    print("RAG took", time_taken_to_rag, "seconds")
-                    print("Memory increased by", mem_taken_to_rag / (1024 * 1024), "MB during RAG execution")
-                    print("\n\n")
+                        print("*"*50)
+                        print("Prompt:", prompt)
+                        print("Response:", response)
+                        print("RAG took", time_taken_to_rag, "seconds")
+                        print("Memory increased by", mem_taken_to_rag / (1024 * 1024), "MB during RAG execution")
+                        print("\n\n")
 
-                    all_data.append({
-                        "embedding_model": embedding_model.model_name,
-                        "llm_model": llm.model_name,
-                        "db_type": db.__class__.__name__,
-                        'base_prompt': prompt,
-                        'base_prompt_id': str(hash(prompt)),
-                        "query": query,
-                        "query_id": str(hash(query)),
-                        "response": response,
-                        "response_similarity_to_query": query_metadata["response_similarity_to_query"],
-                        "num_documents": len(chunks_for_each_document),
-                        "total_chunks": sum(len(doc) for doc in chunks_for_each_document),
-                        "time_taken_to_index": time_taken_to_index,
-                        "mem_taken_to_index": mem_taken_to_index / (1024 * 1024),
-                        "time_taken_to_rag": time_taken_to_rag,
-                        "mem_taken_to_rag": mem_taken_to_rag / (1024 * 1024)
-                    })
+                        all_data.append({
+                            "embedding_model": embedding_model.model_name,
+                            "llm_model": llm.model_name,
+                            "db_type": db.__class__.__name__,
+                            'base_prompt': prompt,
+                            'base_prompt_id': str(hash(prompt)),
+                            "query": query,
+                            "query_id": str(hash(query)),
+                            "response": response,
+                            "response_similarity_to_query": query_metadata["response_similarity_to_query"],
+                            "num_documents": len(chunks_for_each_document),
+                            "total_chunks": sum(len(doc) for doc in chunks_for_each_document),
+                            "time_taken_to_index": time_taken_to_index,
+                            "mem_taken_to_index": mem_taken_to_index / (1024 * 1024),
+                            "time_taken_to_rag": time_taken_to_rag,
+                            "mem_taken_to_rag": mem_taken_to_rag / (1024 * 1024)
+                        })
 
     # Ensure the directory exists
     os.makedirs(os.path.join(os.getcwd(), "../data/experiment_data"), exist_ok=True)
