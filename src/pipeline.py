@@ -66,7 +66,7 @@ class RAG:
         return llm_response, query_metadata
 
     @staticmethod
-    def cosine_similarity(embedding1: np.ndarray, embedding2: np.ndarray) -> float | np.nan:
+    def cosine_similarity(embedding1: np.ndarray, embedding2: np.ndarray) -> float | None:
         """
         Calculate the cosine similarity between two embeddings.
         :param embedding1: First embedding
