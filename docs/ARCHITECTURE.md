@@ -6,7 +6,7 @@ This document provides an overview of our **Retrieval-Augmented Generation (RAG)
 
 ## Overview
 
-Our RAG system is structured to allow the seamless combination of different database connectors, embedding models, and LLMs. Think of each connector as a "Lego block" that can be swapped out for another, enabling rapid experimentation and customization of your pipeline.
+Our RAG system is structured to allow the seamless combination of different database connectors, embedding models, and LLMs. Think of each connector as a "lego block" that can be swapped out for another, enabling rapid experimentation and customization of your pipeline.
 
 ### Key Objectives
 
@@ -33,6 +33,8 @@ Our RAG system is structured to allow the seamless combination of different data
    - **`db_connectors/`**: Database connector implementations (Redis, Chroma, Qdrant).
    - **`embedding_connectors/`**: Embedding model connectors (e.g., OllamaEmbed).
    - **`llm_connectors/`**: Language model connectors (e.g., OllamaLLM).
+   - **`utils/`**: Utility functions and abstract classes.
+   - **`pipeline.py`**: Core pipeline logic for connecting the different components.
    - **`main.py`**: Entry point or orchestrator for the RAG pipeline.
 
 5. **`docker-compose.yml`**  
@@ -78,7 +80,7 @@ Within each connector category, we have specific implementations:
 #### EmbeddingConnectors
 - **OllamaEmbed**  
   Connects to the Ollama distribution to produce embeddings.  
-  > *Note:* Ollama provides on-device language models, which can be leveraged for various NLP tasks.
+  > **Note:** Ollama provides on-device language models, which can be leveraged for various NLP tasks.
 
 #### LLMConnectors
 - **OllamaLLM**  
