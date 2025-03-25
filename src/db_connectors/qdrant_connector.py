@@ -19,6 +19,8 @@ class QdrantConnector(DBModel):
 
         collections = self.qdrant_client.get_collections().collections
         collection_names = [col.name for col in collections]
+
+        # Create the collection if it does not exist
         if collection_name not in collection_names:
             self.qdrant_client.create_collection(
                 collection_name,
@@ -35,13 +37,14 @@ class QdrantConnector(DBModel):
             ids: Optional[List[str]] = None  # Ignored in this basic implementation
     ) -> None:
         """
-        Index the embeddings with associated metadata for each chunk of every document into Qdrant,
-        using basic integer IDs.
+        Index the embeddings with associated metadata.
 
-        :param documents: List of documents (each document is a list of text chunks).
-        :param embeddings: List of embeddings for each document's chunks.
-        :param metadata: List of metadata for each document's chunks (optional).
-        :param ids: List of custom IDs for the documents (ignored here).
+        :param documents: A list of documents, where each document is a list of text chunks (strings).
+        :param embeddings: A list of lists of embeddings, where each embedding is a list of numpy arrays
+                            corresponding to the text chunks in the documents.
+        :param metadata: Optional list of lists of metadata dictionaries corresponding to each text chunk.
+        :param ids: Optional list of unique IDs for each document. If not provided, a default ID will be generated.
+
         :return: None
         """
         payload = []
@@ -109,23 +112,3 @@ class QdrantConnector(DBModel):
         except Exception as e:
             print(f"Error querying Qdrant: {e}")
             return [], []
-
-if __name__ == "__main__":
-    qdb_connector = QdrantConnector()
-    print("Qdrant connector initialized.")  # Test the connector initialization
-    print(qdb_connector.qdrant_client.get_collections())
-
-    #Example upsert
-    documents = ["Cookies are yummy", "Trucks are fast", "Yummy is defined as a taste that is delicious.",
-                 "Fast is defined as moving quickly."]
-    embeddings = [ollama.embeddings(model="nomic-embed-text", prompt=doc)["embedding"] for doc in documents]
-    metadata = [{"text": doc} for doc in documents]
-    qdb_connector.index_embeddings(documents, embeddings, metadata)
-    print("Embeddings indexed successfully.")  # Test the indexing function
-    print(qdb_connector.qdrant_client.get_collection("rag"))  # Check the collections in Qdrant
-
-    # Example search
-    query_embedding = ollama.embeddings(model="nomic-embed-text", prompt="What is yummy?")["embedding"]
-    context, meta = qdb_connector.query_db(query_embedding, top_k=2)
-    print("Context:", context)
-    print("Metadata:", meta)  # Test the query function

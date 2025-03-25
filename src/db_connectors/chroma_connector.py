@@ -34,10 +34,13 @@ class ChromaConnector(DBModel):
         """
         Index the embeddings with associated metadata.
 
-        :param documents: List of documents to index (each document is a list of chunks).
-        :param embeddings: List of embeddings for each document's chunks.
-        :param metadata: List of metadata for each document's chunks (optional).
-        :param ids: List of custom IDs for the documents (optional).
+        :param documents: A list of documents, where each document is a list of text chunks (strings).
+        :param embeddings: A list of lists of embeddings, where each embedding is a list of numpy arrays
+                            corresponding to the text chunks in the documents.
+        :param metadata: Optional list of lists of metadata dictionaries corresponding to each text chunk.
+        :param ids: Optional list of unique IDs for each document. If not provided, a default ID will be generated.
+
+        :return: None
         """
         # Generate a base ID for each document if none provided.
         if ids is None:
