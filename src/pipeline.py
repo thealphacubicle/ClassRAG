@@ -66,11 +66,15 @@ class RAG:
         return llm_response, query_metadata
 
     @staticmethod
-    def cosine_similarity(embedding1: np.ndarray, embedding2: np.ndarray) -> float:
+    def cosine_similarity(embedding1: np.ndarray, embedding2: np.ndarray) -> float | np.nan:
         """
         Calculate the cosine similarity between two embeddings.
         :param embedding1: First embedding
         :param embedding2: Second embedding
-        :return: Cosine similarity between the two embeddings
+        :return: Cosine similarity score between the two embeddings. Returns NaN if an error occurs.
         """
-        return np.dot(embedding1, embedding2) / (np.linalg.norm(embedding1) * np.linalg.norm(embedding2))
+        try:
+            return np.dot(embedding1, embedding2) / (np.linalg.norm(embedding1) * np.linalg.norm(embedding2))
+        except Exception as e:
+            print("Error calculating cosine similarity:", e)
+            return np.nan
