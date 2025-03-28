@@ -50,7 +50,7 @@ These models produce 1024-dimensional vectors, which were then indexed in one of
 
 ### 4. Chunking & Preprocessing
 
-We followed an overlay-based chunking strategy with thresholds of 100 and 200 words. Chunks were stored in a 2-D list, with each sublist representing the chunks from each document. Relevant metadata for each chunk was also passed through into a 2-D list.
+We followed an overlay-based chunking strategy with thresholds of 100 and 200 words. Chunks were stored in a 2-D list, with each sublist representing the chunks from each document. Relevant metadata for each chunk was also passed through into a 2-D list. This approach ensured better context retention across chunks while reducing information loss at boundaries. Additionally, by maintaining metadata alongside each chunk, we improved the accuracy of retrieval and relevance in responses.
 
 ## Data Collection
 
@@ -116,15 +116,15 @@ Key points of our analysis include:
 
 1. **Importance of prompt engineering** 
 
-An immportant thing we noticed was that different LLMs respond differently to minor changes in prompts. For instance, some models performed better when more supportive and encouraging language was used in the prompt. Others responded better when asked to be direct or upon specific instructions. In any case, the way a question is asked is also very significant. The output varied significantly when questions were more strictly defined versus when the questions encouraged more "creative" thinking.
+One key takeaway from our project was how much the wording of a prompt affects the response. Different LLMs reacted differently to small changes in phrasing. Some models performed better when prompts were more supportive and encouraging, while others responded best to direct and specific instructions. The way a question was asked also had a big impact on the output. When questions were strictly defined, responses were more structured and precise, while open-ended questions led to more creative answers. This showed that getting the right prompt is just as important as the model itself.
 
 2. **Model Suitability**
 
-Not all LLMs performed equally well. The larger models performed a lot better in handling the "grey areas" that arose from certain questions, while the smaller models were a lot more context dependent, so they did not perform well with ambiguity.
+Not all models handled complex questions the same way. Larger models were much better at dealing with uncertainty and ambiguity, while smaller models needed very clear and specific context to generate useful responses. If a prompt was too vague, smaller models often produced incomplete or overly literal answers. This made it clear that choosing the right model depends on the needs of the application—whether depth of understanding or speed and efficiency is more important.
 
 3. **Embedding and Database Quality**
 
-The choice of database and embedding model was not as significant as other factors, but did have some effects on memory, operating speed, and quality of answers.
+The choice of database and embedding model played a role as well, though it was less important than prompt design and model selection. Some embeddings improved retrieval accuracy, helping the model provide better answers. The database setup also influenced memory usage and response speed, but these factors were only noticeable when working with large amounts of data. While optimizing these technical aspects improved performance, we found that structuring information well and crafting effective prompts had a much bigger impact on results.
 
 4. **Future Work**  
    - **Additional Databases**: Investigate other vector databases like Milvus or Faiss.  
