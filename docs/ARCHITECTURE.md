@@ -36,6 +36,7 @@ Our RAG system is structured to allow the seamless combination of different data
    - **`utils/`**: Utility functions and abstract classes.
    - **`pipeline.py`**: Core pipeline logic for connecting the different components.
    - **`main.py`**: Entry point or orchestrator for the RAG pipeline.
+   - **`main.py`**: Sample file to run 1 specific RAG architecture
 
 5. **`docker-compose.yml`**  
    - Container orchestration file (e.g., for running Redis or other services).
