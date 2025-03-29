@@ -61,7 +61,7 @@ def clean_text(text: str, remove_punctuation: bool = True) -> str:
 def extract_data(file_path: str) -> str:
     """
     Extracts the text from the given
-    :param file_path:
+    :param file_path: File path of the raw data
     :return: Raw text from the file
     """
     text_dict = {}
@@ -85,10 +85,6 @@ def chunk_text(text_dict: str, chunk_size: int = 500, chunk_overlap: int = 50) -
     :param chunk_size: Size of each chunk.
     :param chunk_overlap: Overlap between chunks.
     """
-    # For return types:
-    # List of chunks is going to be a list of strings where each string is a chunk of text
-    # I.E list_of_chunks = ["AVL Trees are" , "self-balancing binary" , "search trees."]
-
     # List of dictionaries is going to be a list of dictionaries where each dictionary is the metadata for the chunk
     """
     [{"file_name": "sample_data.pdf", "chunk_number": 1, "chunk_size": 250, "chunk_overlap": 50, "model_type": embedding_model.model_name},
@@ -98,6 +94,7 @@ def chunk_text(text_dict: str, chunk_size: int = 500, chunk_overlap: int = 50) -
     chunked = {}
     metadata = {}
 
+    # Loop through and chunk through all docs
     for filename, text in text_dict.items():
         words = text.split()
         chunks = []
@@ -118,12 +115,6 @@ def chunk_text(text_dict: str, chunk_size: int = 500, chunk_overlap: int = 50) -
         metadata[filename] = chunk_meta
 
     return list(chunked.values()), list(metadata.values())
-
-if __name__ == "__main__":
-    txt = extract_data(file_path)
-    chunk_list, metadata_list = chunk_text(txt, 500, 50)
-    print(metadata_list[11])
-    print(chunk_list[11])
 
 
 

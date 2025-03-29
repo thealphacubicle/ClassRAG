@@ -1,6 +1,6 @@
 ## Introduction
 
-Welcome to **DS4300-Class-RAG**, a Retrieval-Augmented Generation (RAG) system designed with a modular, plug-and-play architecture. This project leverages multiple vector databases (Redis, Chroma, Milvus) and local Large Language Models (LLMs) to deliver high-quality, context-aware responses. By following the instructions below, you can quickly set up your environment, run the databases in Docker, and test a sample workflow.
+Welcome to **DS4300-Class-RAG**, a Retrieval-Augmented Generation (RAG) system designed with a modular, plug-and-play architecture. This project leverages multiple vector databases (Redis, Chroma, Qdrant) and local Large Language Models (LLMs) to deliver high-quality, context-aware responses. By following the instructions below, you can quickly set up your environment, run the databases in Docker, and test a sample workflow.
 
 ## Repository Structure
 ```
@@ -26,7 +26,9 @@ DS4300-Class-RAG/
 │       ├── llm_model.py
 │       ├── pipeline.py  # Core pipeline orchestrating RAG
 │       └── main.py  # Potential entry point to run pipeline
-├── docker-compose.yml  # Defines containers for Redis, Chroma, and Milvus
+        └── test.py # Sample file to run 1 specific RAG architecture
+        
+├── docker-compose.yml  # Defines containers for Redis, Chroma, and Qdrant
 ├── requirements.txt  # Python dependencies
 └── README.md  # Project documentation
 ```
@@ -34,15 +36,15 @@ DS4300-Class-RAG/
 In this repository:
 
 - **`data/`**: Placeholder directory for storing raw or processed data files.  
-- **`docs/`**: Documentation related to the project (reports, design documents, etc.).  
+- **`docs/`**: Documentation related to the project.
 - **`notebooks/`**: Jupyter notebooks for experimentation and prototyping.  
 - **`scripts/`**: Utility scripts or command-line tools.  
 - **`src/`**: Main source code, subdivided into:
-  - **`db_connectors/`**: Concrete implementations for different databases (e.g., `chroma.py`, `redis.py`, `milvus.py`).  
+  - **`db_connectors/`**: Concrete implementations for different databases  
   - **`embedding_connectors/`**: Classes for embedding models.  
   - **`llm_connectors/`**: Classes for local LLM integrations.  
-  - **`utils/`**: Contains abstract base classes (`db_model.py`, `embedding_model.py`, `llm_model.py`), the pipeline orchestrator (`pipeline.py`), and a sample entry point (`main.py`).  
-- **`docker-compose.yml`**: Defines containerized services for Redis, Chroma, and Milvus.  
+  - **`utils/`**: Contains abstract base classes, the pipeline orchestrator, experiment orchestrator, and test file.  
+- **`docker-compose.yml`**: Defines containerized services for Redis, Chroma, and Qdrant.  
 - **`requirements.txt`**: Python dependencies for the project.  
 - **`README.md`**: This documentation file, providing setup instructions and usage details.
 
@@ -79,11 +81,11 @@ In this repository:
    ```
 
 ### 4. Start the Docker Containers
-1. **Start the Docker containers for Redis, Chroma, and Milvus:**
+1. **Start the Docker containers from the root directory:**
    ```bash
    docker-compose up -d
    ```
-2**Ensure the containers are running:**
+2. **Ensure the containers are running:**
    ```bash
    docker ps
    ```
@@ -95,8 +97,8 @@ In this repository:
    ollama pull <model-name:tag>
    ```
    
-### 6. TO CHANGE: Run the pipeline
-1. **Run the sample pipeline:**
+### 6. Run the pipeline
+1. **Run the pipeline:**
    ```bash
    python src/main.py
    ```

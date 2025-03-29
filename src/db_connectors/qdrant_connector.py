@@ -1,7 +1,6 @@
 from qdrant_client import QdrantClient
 from qdrant_client.models import Distance, VectorParams, PointStruct
 from src.utils.db_model import DBModel
-import ollama
 from typing import List, Dict, Any, Optional, Tuple
 from numpy import ndarray
 
@@ -48,29 +47,28 @@ class QdrantConnector(DBModel):
         :return: None
         """
         payload = []
-        point_id = 0  # Use a simple global counter for point IDs.
+        point_id = 0
 
         for doc_index, doc in enumerate(documents):
             for chunk_index, chunk in enumerate(doc):
                 try:
-                    # Use a basic unsigned integer as the point ID.
+                    # Use a basic number as the point ID.
                     current_id = point_id
                     point_id += 1
 
                     # Retrieve the embedding for the current chunk.
                     embedding_to_index = embeddings[doc_index][chunk_index]
 
-                    # Retrieve metadata for the current chunk if available; otherwise, use an empty dict.
+                    # Retrieve metadata for the current chunk if available. Otherwise, use an empty dict.
                     if metadata is not None and doc_index < len(metadata) and chunk_index < len(metadata[doc_index]):
                         chunk_metadata = metadata[doc_index][chunk_index]
                     else:
                         chunk_metadata = {}
 
-                    # Optionally include the text in the payload.
                     chunk_payload = chunk_metadata.copy()
                     chunk_payload["text"] = chunk
 
-                    # Create the point structure for Qdrant.
+                    # Create the point structure for Qdrant
                     point = PointStruct(
                         id=current_id,
                         vector=embedding_to_index,
@@ -80,7 +78,7 @@ class QdrantConnector(DBModel):
                 except Exception as e:
                     print(f"Error preparing point for document {doc_index} chunk {chunk_index}: {e}")
 
-        # Upsert the prepared payload into Qdrant.
+        # Insert payload to Qdrant
         status = self.qdrant_client.upsert(collection_name=self.collection_name, points=payload)
         print(status.status)
 

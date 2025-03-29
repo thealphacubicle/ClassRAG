@@ -11,7 +11,7 @@ if __name__ == '__main__':
     # Define parameters
     db = RedisConnector()
     embedding_model = OllamaEmbed(model_name="bge-large")
-    llm = OllamaLLM(model_name="gemma3:latest")
+    llm = OllamaLLM(model_name="tinyllama:latest")
 
     # If you need to index, index into database
     if NEED_TO_INDEX:
@@ -32,9 +32,9 @@ if __name__ == '__main__':
 
     # Run RAG
     rag_pipeline = RAG(embedding_model, db, llm)
-    query = """Briefly describe how a key/value store can be used as a feature store. """
-    prompt = ("Use the following context to answer the query as accurately as possible. Be as direct and concise as "
-              "possible and answer within 2 sentences.")
+    query = """"How are document databases different from relational databases?"""
+    prompt = ("""You are a genius AI assistant. Use the following context to answer the query as accurately as possible.
+        Directly answer my question using pertinent information from the context.""")
     response, query_metadata = rag_pipeline.run(query, base_prompt=prompt, use_context=False, top_k=3)
     print("Response:", response)
 
