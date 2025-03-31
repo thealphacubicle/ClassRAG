@@ -98,10 +98,14 @@ In this repository:
    ```
    
 ### 6. Run the pipeline
-1. **Run the pipeline:**
+1. **To run the pipeline:**
    ```bash
    python src/main.py
    ```
+2. **To run the test file:**
+   ```bash
+    python src/test.py
+    ```
 
 ### 7. Remove Docker Containers
 1. **Stop and remove the Docker containers (NO PERSISTENCE):**

@@ -6,7 +6,7 @@ import src.utils.preprocessing as tp
 
 
 if __name__ == '__main__':
-    NEED_TO_INDEX = False
+    NEED_TO_INDEX = True
 
     # Define parameters
     db = RedisConnector()
