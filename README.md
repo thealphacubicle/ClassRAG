@@ -2,6 +2,9 @@
 
 Welcome to **DS4300-Class-RAG**, a Retrieval-Augmented Generation (RAG) system designed with a modular, plug-and-play architecture. This project leverages multiple vector databases (Redis, Chroma, Qdrant) and local Large Language Models (LLMs) to deliver high-quality, context-aware responses. By following the instructions below, you can quickly set up your environment, run the databases in Docker, and test a sample workflow.
 
+**See [here](https://drive.google.com/file/d/1bCSIu4rnAQGdSmdyK4ntyZS6uv5-Iiif/view?usp=sharing) for a working demo of our pipeline!**
+
+
 ## Repository Structure
 ```
 DS4300-Class-RAG/
